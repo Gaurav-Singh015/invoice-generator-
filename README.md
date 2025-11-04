@@ -1,1 +1,1 @@
-# invoice-generator-
+# invoice-generator
