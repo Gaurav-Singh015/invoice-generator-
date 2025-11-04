@@ -1,0 +1,62 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f3f4f6;
+}
+
+.invoice-container {
+  max-width: 850px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+#logo-image {
+  max-width: 200px;
+  max-height: 80px;
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+}
+
+#default-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+#notes {
+  overflow: hidden;
+  min-height: 6rem;
+  box-sizing: border-box;
+}
+
+@media print {
+  body {
+    background-color: white;
+  }
+  .invoice-container {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .print-hidden {
+    display: none !important;
+  }
+  #logo-container[data-logo-state="absent"] #default-title {
+    display: none;
+  }
+  #notes {
+    height: auto !important;
+    resize: none !important;
+  }
+}
+
+.hide-on-print {
+  display: none !important;
+}

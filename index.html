@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Invoice Generator</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="p-4 sm:p-6">
+  <div class="invoice-container">
+    <!-- HEADER -->
+    <header class="flex justify-between items-start mb-10 pb-4 border-b border-gray-200">
+      <div class="flex flex-col">
+        <div id="logo-container" class="cursor-pointer mb-2" data-logo-state="absent" title="Click to upload/change logo">
+          <img id="logo-image" class="hidden" alt="Company Logo" onclick="document.getElementById('logo-upload').click()">
+          <span id="default-title" class="transition-colors duration-200 hover:text-indigo-600" onclick="document.getElementById('logo-upload').click()">smartinvoice</span>
+          <input type="file" id="logo-upload" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+        </div>
+
+        <div class="flex space-x-2 text-sm text-gray-500 print-hidden">
+          <button onclick="document.getElementById('logo-upload').click()" class="text-indigo-600 hover:text-indigo-700 font-medium">Upload Logo</button>
+          <button id="remove-logo-btn" onclick="removeLogo()" class="text-red-500 hover:text-red-600 font-medium hidden">Remove Logo</button>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <h1 class="text-4xl font-extrabold text-indigo-600 mb-2">INVOICE</h1>
+        <div class="text-sm text-gray-700 space-y-1">
+          <p><span class="inline-block w-20 font-semibold">Invoice #</span>
+            <input type="text" value="INV-2025-001" class="w-32 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-right font-mono" id="invoice-number">
+          </p>
+          <p><span class="inline-block w-20 font-semibold">Date:</span>
+            <input type="date" value="2025-11-01" class="w-32 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-right font-mono" id="invoice-date">
+          </p>
+          <p><span class="inline-block w-20 font-semibold">Due:</span>
+            <input type="date" value="2025-12-01" class="w-32 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-right font-mono" id="invoice-due-date">
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Company & Client Details -->
+    <div class="flex flex-col sm:flex-row justify-between mb-10 text-sm">
+      <div>
+        <h3 class="font-semibold text-gray-800 mb-2">Billed From:</h3>
+        <textarea id="bill-from" rows="4" class="w-64 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" onfocus="handleFocusClear(event)">ACME Solutions Ltd.
+123 Tech Park
+San Francisco, CA 94107
+contact@acme.com</textarea>
+      </div>
+
+      <div class="mt-6 sm:mt-0">
+        <h3 class="font-semibold text-gray-800 mb-2">Billed To:</h3>
+        <textarea id="bill-to" rows="4" class="w-64 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" onfocus="handleFocusClear(event)">Client Name Inc.
+456 Innovation Way
+New York, NY 10001
+client@name.com</textarea>
+      </div>
+    </div>
+
+    <!-- Invoice Items Table -->
+    <div class="overflow-x-auto mb-10">
+      <table class="min-w-full bg-white rounded-lg shadow-md" id="item-table">
+        <thead>
+          <tr class="bg-gray-100 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">
+            <th class="py-3 px-4 rounded-tl-lg">Description</th>
+            <th class="py-3 px-4 w-20 text-right">Qty</th>
+            <th class="py-3 px-4 w-24 text-right">Rate</th>
+            <th class="py-3 px-4 w-28 text-right rounded-tr-lg">Amount</th>
+            <th class="py-3 px-4 w-10 print-hidden"></th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-700 text-sm" id="item-list"></tbody>
+      </table>
+    </div>
+
+    <!-- Add Item Button & Totals -->
+    <div class="flex justify-between items-start flex-wrap">
+      <button onclick="addItem()" class="print-hidden mb-4 sm:mb-0 px-4 py-2 bg-indigo-500 text-white text-sm font-medium rounded-lg hover:bg-indigo-600 transition duration-150 shadow-md flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        Add Item
+      </button>
+
+      <div class="w-full sm:w-72">
+        <div class="flex justify-between py-2 border-b">
+          <span class="text-gray-600">Subtotal:</span>
+          <span class="font-semibold text-gray-800" id="subtotal">$0.00</span>
+        </div>
+        <div class="flex justify-between py-2 border-b">
+          <label for="tax-rate" class="text-gray-600">Tax Rate (%):</label>
+          <input type="number" id="tax-rate" value="10" min="0" max="100" class="w-16 text-right border-b border-gray-300 focus:outline-none focus:border-indigo-500 font-mono" oninput="calculateTotals(); saveInvoice();">
+        </div>
+        <div class="flex justify-between py-2 border-b">
+          <span class="text-gray-600">Tax Amount:</span>
+          <span class="font-semibold text-gray-800" id="tax-amount">$0.00</span>
+        </div>
+        <div class="flex justify-between py-2 mt-4 text-xl font-bold bg-indigo-50 rounded-lg p-2">
+          <span class="text-indigo-700">Total Due:</span>
+          <span class="text-indigo-800" id="total-due">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="mt-10 pt-6 border-t border-gray-200">
+      <h3 class="font-semibold text-gray-800 mb-2">Notes/Terms:</h3>
+      <textarea id="notes" rows="3" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y" oninput="autoExpandNotes(); saveInvoice();">Payment is due within 30 days. Thank you for your business! Please see additional terms on our website (www.yourcompany.com/terms).</textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-center mt-8 print-hidden space-x-4">
+      <button onclick="printInvoice()" class="px-6 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition duration-150 shadow-lg">Download PDF</button>
+      <button onclick="saveInvoice()" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition duration-150 shadow-lg">Save Draft</button>
+      <button onclick="resetInvoice()" class="px-6 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition duration-150 shadow-lg">Reset Invoice</button>
+    </div>
+  </div>
+
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+</html>
